@@ -1,11 +1,11 @@
-from fastapi import FastAPI, Response, UploadFile, File
+from fastapi import FastAPI, Response, UploadFile, File, Form, Depends
 from pydantic import BaseModel
 
 import api
 import json
 import xmlrpc.client as client
 
-server = client.ServerProxy("http://127.0.0.1:1717/")
+server = client.ServerProxy("https://rpc.krobot.my.id/")
 
 app = FastAPI()
 
@@ -15,11 +15,21 @@ class User(BaseModel):
     password: str
 
 
+def form_body(cls):
+    cls.__signature__ = cls.__signature__.replace(
+        parameters=[
+            arg.replace(default=Form(...))
+            for arg in cls.__signature__.parameters.values()
+        ]
+    )
+    return cls
+
+
+@form_body
 class UserUploadFile(BaseModel):
     username: str
     password: str
     filename: str
-    file: UploadFile = File(...)
 
 
 class UserDownloadFile(BaseModel):
@@ -69,7 +79,7 @@ def user_file_list(response: Response, user: User):
 
 
 @app.post('/upload_file', status_code=200)
-def upload_file(response: Response, user: UserUploadFile):
+async def upload_file(response: Response, user: UserUploadFile = Depends(UserUploadFile), file: UploadFile = File(...)):
     # TODO 1: Login Duls Via RPC
     # TODO 2: Mengupload File Milik user Via RPC
     data = ''

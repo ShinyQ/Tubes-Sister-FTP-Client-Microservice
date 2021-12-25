@@ -1,5 +1,8 @@
 from fastapi import FastAPI, Response, UploadFile, File, Form, Depends
 from pydantic import BaseModel
+from datetime import datetime
+
+from starlette.responses import FileResponse
 
 import api
 import json
@@ -25,82 +28,101 @@ class User(BaseModel):
     password: str
 
 
+@form_body
 class UserDetail(BaseModel):
     id: str
 
 
-@form_body
-class UserUploadFile(BaseModel):
-    username: str
-    password: str
-    filename: str
-
-
 class UserDownloadFile(BaseModel):
-    username: str
-    password: str
+    id: str
     uuid_file: str
 
 
-@app.post('/login', status_code=200)
+@app.post("/login", status_code=200)
 def login(response: Response, user: User):
     res = server.login(user.username, user.password)
     res = json.loads(res)
 
-    if not res.get('success'):
+    if not res.get("success"):
         data = []
         response.status_code = 500
     else:
-        data = res.get('data')
+        data = res.get("data")
 
     return api.builder(data, response.status_code)
 
 
-@app.post('/register', status_code=200)
+@app.post("/register", status_code=200)
 def register(response: Response, user: User):
     res = server.register(user.username, user.password)
     res = json.loads(res)
 
-    if not res.get('success'):
+    if not res.get("success"):
         response.status_code = 500
 
     return api.builder([], response.status_code)
 
 
-@app.get('/file_list', status_code=200)
+@app.get("/file_list", status_code=200)
 def file_list(response: Response):
-    data = json.loads(server.file_list()).get('data')
+    data = json.loads(server.file_list()).get("data")
     return api.builder(data, response.status_code)
 
 
-@app.post('/user_file_list', status_code=200)
+@app.post("/user_file_list", status_code=200)
 def user_file_list(response: Response, user: UserDetail):
     res = server.my_files(user.id)
     res = json.loads(res)
 
-    data = res.get('data')
+    data = res.get("data")
     return api.builder(data, response.status_code)
 
 
-@app.post('/upload_file', status_code=200)
-async def upload_file(response: Response, user: UserUploadFile = Depends(UserUploadFile), file: UploadFile = File(...)):
-    # TODO 1: Login Duls Via RPC
-    # TODO 2: Mengupload File Milik user Via RPC
-    data = ''
-    return api.builder(data, response.status_code)
+@app.post("/upload_file", status_code=200)
+async def upload_file(
+    response: Response,
+    user: UserDetail = Depends(UserDetail),
+    file: UploadFile = File(...),
+):
+    file.filename = file.filename
+    with open(file.filename, "rb") as handle:
+        data = client.Binary(handle.read())
+        res = server.file_upload(data, file.filename, user.id)
+
+    return api.builder([], response.status_code)
 
 
-@app.get('/download_file', status_code=200)
+@app.post("/download_file", status_code=200)
 def download_file(response: Response, user: UserDownloadFile):
-    # TODO 1: Login Duls Via RPC
-    # TODO 2: Download Dan Simpan File Milik user Via RPC Ke Folder File
-    # TODO 3: Return Json Link File
-    data = ''
-    return api.builder(data, response.status_code)
+    res = server.file_download(user.id, user.uuid_file)
+    res = json.loads(res)
+    if res.get("success"):
+        filename = res["data"]["fileName"]
+        saved_filename = "{}_{}".format(
+            datetime.now().strftime("%y%m%d_%H%M%S"),
+            filename,
+        )
+        file_location = "files/{}".format(saved_filename)
+        with open(file_location, "wb") as handle:
+            handle.write(bytes(res["data"]["fileData"], "utf-8"))
+            handle.close()
+    else:
+        return api.builder([], 500)
+
+    return FileResponse(
+        file_location, media_type="application/octet-stream", filename=filename
+    )
 
 
-@app.get('/most_active', status_code=200)
+@app.get("/most_active", status_code=200)
 def most_active(response: Response):
-    # TODO 1: Get Most Active User
-    data = ''
+    res = server.most_active()
+    res = json.loads(res)
+
+    if not res.get("success"):
+        data = []
+        response.status_code = 500
+    else:
+        data = res.get("data")
+
     return api.builder(data, response.status_code)

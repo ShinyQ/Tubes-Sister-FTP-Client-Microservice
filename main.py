@@ -25,6 +25,10 @@ class User(BaseModel):
     password: str
 
 
+class UserDetail(BaseModel):
+    id: str
+
+
 @form_body
 class UserUploadFile(BaseModel):
     username: str
@@ -70,8 +74,8 @@ def file_list(response: Response):
 
 
 @app.post('/user_file_list', status_code=200)
-def user_file_list(response: Response, id):
-    res = server.my_files(id)
+def user_file_list(response: Response, user: UserDetail):
+    res = server.my_files(user.id)
     res = json.loads(res)
 
     data = res.get('data')

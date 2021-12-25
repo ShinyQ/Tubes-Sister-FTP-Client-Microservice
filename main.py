@@ -70,11 +70,8 @@ def file_list(response: Response):
 
 
 @app.post('/user_file_list', status_code=200)
-def user_file_list(response: Response, user: User):
-    res = server.login(user.username, user.password)
-    res = json.loads(res)
-
-    res = server.my_files(res.get('data').get('id'))
+def user_file_list(response: Response, id):
+    res = server.my_files(id)
     res = json.loads(res)
 
     data = res.get('data')

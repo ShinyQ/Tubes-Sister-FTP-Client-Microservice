@@ -10,11 +10,6 @@ server = client.ServerProxy("https://rpc.krobot.my.id/")
 app = FastAPI()
 
 
-class User(BaseModel):
-    username: str
-    password: str
-
-
 def form_body(cls):
     cls.__signature__ = cls.__signature__.replace(
         parameters=[
@@ -23,6 +18,11 @@ def form_body(cls):
         ]
     )
     return cls
+
+
+class User(BaseModel):
+    username: str
+    password: str
 
 
 @form_body
@@ -70,11 +70,16 @@ def file_list(response: Response):
     return api.builder(data, response.status_code)
 
 
-@app.get('/user_file_list', status_code=200)
+@app.post('/user_file_list', status_code=200)
 def user_file_list(response: Response, user: User):
-    # TODO 1: Login Duls Via RPC
-    # TODO 2: Menampilkan Seluruh File Milik user Via RPC
-    data = ''
+    res = server.login(user.username, user.password)
+    res = json.loads(res)
+
+    res = server.my_files(res.get('data').get('id'))
+    res = json.loads(res)
+
+    data = res.get('data')
+
     return api.builder(data, response.status_code)
 
 

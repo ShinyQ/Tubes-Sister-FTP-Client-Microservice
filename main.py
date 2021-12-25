@@ -65,8 +65,7 @@ def register(response: Response, user: User):
 
 @app.get('/file_list', status_code=200)
 def file_list(response: Response):
-    # TODO : Menampilkan Seluruh File Via RPC
-    data = ''
+    data = json.loads(server.file_list()).get('data')
     return api.builder(data, response.status_code)
 
 
@@ -79,7 +78,6 @@ def user_file_list(response: Response, user: User):
     res = json.loads(res)
 
     data = res.get('data')
-
     return api.builder(data, response.status_code)
 
 

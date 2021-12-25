@@ -3,7 +3,6 @@ from starlette.responses import FileResponse
 from pydantic import BaseModel
 from datetime import datetime
 from fastapi.staticfiles import StaticFiles
-import os
 
 import api
 import json

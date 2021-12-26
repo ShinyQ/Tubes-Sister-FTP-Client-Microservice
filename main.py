@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Response, UploadFile, File, Form, Depends
-from starlette.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import datetime
-from fastapi.staticfiles import StaticFiles
 
 import api
 import json
+import base64
 import xmlrpc.client as client
 
 server = client.ServerProxy("https://rpc.krobot.my.id/")
@@ -102,7 +102,7 @@ def download_file(response: Response, user: UserDownloadFile):
         file_location = "files/{}".format(saved_filename)
 
         with open(file_location, "wb") as handle:
-            handle.write(bytes(res["data"]["fileData"], "utf-8"))
+            handle.write(base64.b64decode(res["data"]["fileData"]))
             handle.close()
     else:
         return api.builder([], 500)

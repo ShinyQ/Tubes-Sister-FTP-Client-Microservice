@@ -110,9 +110,79 @@ def download_file(response: Response, user: UserDownloadFile):
     return api.builder(saved_filename, response.status_code)
 
 
-@app.get("/most_active", status_code=200)
-def most_active(response: Response):
-    res = server.most_active()
+@app.get("/most_active_upload", status_code=200)
+def most_active_upload(response: Response):
+    res = server.most_active("upload")
+    res = json.loads(res)
+
+    if not res.get("success"):
+        data = []
+        response.status_code = 500
+    else:
+        data = res.get("data")
+
+    return api.builder(data, response.status_code)
+
+
+@app.get("/most_active_download", status_code=200)
+def most_active_download(response: Response):
+    res = server.most_active("upload")
+    res = json.loads(res)
+
+    if not res.get("success"):
+        data = []
+        response.status_code = 500
+    else:
+        data = res.get("data")
+
+    return api.builder(data, response.status_code)
+
+
+@app.get("/logs_download", status_code=200)
+def logs_download(response: Response):
+    res = server.logs("download")
+    res = json.loads(res)
+
+    if not res.get("success"):
+        data = []
+        response.status_code = 500
+    else:
+        data = res.get("data")
+
+    return api.builder(data, response.status_code)
+
+
+@app.get("/logs_upload", status_code=200)
+def logs_upload(response: Response):
+    res = server.logs("upload")
+    res = json.loads(res)
+
+    if not res.get("success"):
+        data = []
+        response.status_code = 500
+    else:
+        data = res.get("data")
+
+    return api.builder(data, response.status_code)
+
+
+@app.get("/logs_all", status_code=200)
+def logs_all(response: Response):
+    res = server.logs()
+    res = json.loads(res)
+
+    if not res.get("success"):
+        data = []
+        response.status_code = 500
+    else:
+        data = res.get("data")
+
+    return api.builder(data, response.status_code)
+
+
+@app.get("/logs_data", status_code=200)
+def logs_data(response: Response):
+    res = server.log_data()
     res = json.loads(res)
 
     if not res.get("success"):

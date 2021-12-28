@@ -126,7 +126,7 @@ def most_active_upload(response: Response):
 
 @app.get("/most_active_download", status_code=200)
 def most_active_download(response: Response):
-    res = server.most_active("upload")
+    res = server.most_active("download")
     res = json.loads(res)
 
     if not res.get("success"):
@@ -183,6 +183,20 @@ def logs_all(response: Response):
 @app.get("/logs_data", status_code=200)
 def logs_data(response: Response):
     res = server.log_data()
+    res = json.loads(res)
+
+    if not res.get("success"):
+        data = []
+        response.status_code = 500
+    else:
+        data = res.get("data")
+
+    return api.builder(data, response.status_code)
+
+
+@app.get("/get_users", status_code=200)
+def get_users(response: Response):
+    res = server.get_users()
     res = json.loads(res)
 
     if not res.get("success"):

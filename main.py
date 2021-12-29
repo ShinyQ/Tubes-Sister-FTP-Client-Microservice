@@ -8,7 +8,7 @@ import json
 import base64
 import xmlrpc.client as client
 
-server = client.ServerProxy("https://rpc.krobot.my.id/")
+Client = client.ServerProxy("https://rpc.krobot.my.id/")
 
 app = FastAPI()
 app.mount("/files", StaticFiles(directory="files"), name="files")
@@ -41,7 +41,7 @@ class UserDownloadFile(BaseModel):
 
 @app.post("/login", status_code=200)
 def login(response: Response, user: User):
-    res = server.login(user.username, user.password)
+    res = Client.login(user.username, user.password)
     res = json.loads(res)
 
     if not res.get("success"):
@@ -55,7 +55,7 @@ def login(response: Response, user: User):
 
 @app.post("/register", status_code=200)
 def register(response: Response, user: User):
-    res = server.register(user.username, user.password)
+    res = Client.register(user.username, user.password)
     res = json.loads(res)
 
     if not res.get("success"):
@@ -66,13 +66,13 @@ def register(response: Response, user: User):
 
 @app.get("/file_list", status_code=200)
 def file_list(response: Response):
-    data = json.loads(server.file_list()).get("data")
+    data = json.loads(Client.file_list()).get("data")
     return api.builder(data, response.status_code)
 
 
 @app.post("/user_file_list", status_code=200)
 def user_file_list(response: Response, user: UserDetail):
-    res = server.my_files(user.id)
+    res = Client.my_files(user.id)
     res = json.loads(res)
 
     data = res.get("data")
@@ -86,14 +86,14 @@ async def upload_file(
         file: UploadFile = File(...),
 ):
     data = client.Binary(await file.read())
-    server.file_upload(data, file.filename, user.id)
+    Client.file_upload(data, file.filename, user.id)
 
     return api.builder([], response.status_code)
 
 
 @app.post("/download_file", status_code=200)
 def download_file(response: Response, user: UserDownloadFile):
-    res = server.file_download(user.id, user.uuid_file)
+    res = Client.file_download(user.id, user.uuid_file)
     res = json.loads(res)
 
     if res.get("success"):
@@ -112,7 +112,7 @@ def download_file(response: Response, user: UserDownloadFile):
 
 @app.get("/most_active_upload", status_code=200)
 def most_active_upload(response: Response):
-    res = server.most_active("upload")
+    res = Client.most_active("upload")
     res = json.loads(res)
 
     if not res.get("success"):
@@ -126,7 +126,7 @@ def most_active_upload(response: Response):
 
 @app.get("/most_active_download", status_code=200)
 def most_active_download(response: Response):
-    res = server.most_active("download")
+    res = Client.most_active("download")
     res = json.loads(res)
 
     if not res.get("success"):
@@ -140,7 +140,7 @@ def most_active_download(response: Response):
 
 @app.get("/logs_download", status_code=200)
 def logs_download(response: Response):
-    res = server.logs("download")
+    res = Client.logs("download")
     res = json.loads(res)
 
     if not res.get("success"):
@@ -154,7 +154,7 @@ def logs_download(response: Response):
 
 @app.get("/logs_upload", status_code=200)
 def logs_upload(response: Response):
-    res = server.logs("upload")
+    res = Client.logs("upload")
     res = json.loads(res)
 
     if not res.get("success"):
@@ -168,7 +168,7 @@ def logs_upload(response: Response):
 
 @app.get("/logs_all", status_code=200)
 def logs_all(response: Response):
-    res = server.logs()
+    res = Client.logs()
     res = json.loads(res)
 
     if not res.get("success"):
@@ -182,7 +182,7 @@ def logs_all(response: Response):
 
 @app.get("/logs_data", status_code=200)
 def logs_data(response: Response):
-    res = server.log_data()
+    res = Client.log_data()
     res = json.loads(res)
 
     if not res.get("success"):
@@ -196,7 +196,7 @@ def logs_data(response: Response):
 
 @app.get("/get_users", status_code=200)
 def get_users(response: Response):
-    res = server.get_users()
+    res = Client.get_users()
     res = json.loads(res)
 
     if not res.get("success"):
